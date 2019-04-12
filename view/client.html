@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Chat</title>
+    <script src="//code.jquery.com/jquery-1.11.1.js"></script>
+    <!-- 합쳐지고 최소화된 최신 CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
+
+    <!-- 부가적인 테마 -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap-theme.min.css">
+
+    <!-- 합쳐지고 최소화된 최신 자바스크립트 -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+
+    <style>
+        body {
+            background: #f2f4f7;
+        }
+
+        .chat_log {
+            height: 200px;
+        }
+
+        .name {
+            width: 10%;
+        }
+
+        .message {
+            width: 70%;
+        }
+
+        .chat {
+            width: 10%;
+        }
+
+        .section_navbar {
+            padding: 20px;
+            width: 70%;
+            margin: auto;
+            margin-bottom: 8px;
+            border: 1px solid #dee3eb;
+            background: #fff;
+        }
+    </style>
+</head>
+
+<body>
+
+
+    <div class="section_navbar">
+
+        <h3>방 리스트 </h3>
+        <div class="row">
+            <div class="col-md-8">
+                <div id="roomList" class="list-group">
+
+                </div>
+
+                <button id="new_room" type="button" class="btn btn-default glyphicon glyphicon-plus">
+                    방생성</button>
+
+
+            </div>
+            <div class="section_navbar  col-md-4" style="width: 400px">
+                <p id="userId"></p>
+                <p>ID 변경하기</p>
+                <div class="input-group">
+                    <input id="nameValue" type="text" class="form-control" placeholder="변경할 아이디를 입력하시오">
+                    <span class="input-group-btn">
+                        <button id="setName" class="btn btn-default" type="button">변경하기</button>
+                    </span>
+                </div>
+                <br>
+                대기자 명단
+                <div id="users" class="list-group">
+                    <a href="#" class="list-group-item active">
+                        Cras justo odio
+                    </a>
+                    <a href="#" class="list-group-item">Dapibus ac facilisis in</a>
+                    <a href="#" class="list-group-item">Morbi leo risus</a>
+                    <a href="#" class="list-group-item">Porta ac consectetur ac</a>
+                    <a href="#" class="list-group-item">Vestibulum at eros</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var socket = io();
+
+        window.onload = function () {
+
+            socket.emit('start');
+        }
+
+        socket.on('change name', function (name) {
+            $('#userId').text("현재 아이디 : " + name);
+        });
+
+        socket.on('roomList', (list) => {
+            console.log(`list`);
+            console.log(list);
+            $('#roomList a').remove();
+            for (var i = 0; i < list.length; i++) {
+
+                // $('.list-group').append('<a href="/room?id=' + i + '"class=" list-group-item ">');
+
+                $('#roomList').append($('<a href="/room?id=' + i + '" class=" list-group-item ">')
+                    .text(
+                        '제목: ' + list[i]['roomName'] + '방장: ' + list[i]['name']));
+
+
+            }
+        })
+
+        $('#setName').click(function () {
+            // 요청 Url, xml(또는 html)리턴 결과값
+            $.post("http://localhost:3000/setName", {
+                name: $('#nameValue').val()
+            })
+
+            document.location.href = '/';
+        });
+
+
+        $('#new_room').click(function (e) {
+            var inputString = prompt('방제목을 입력하시오.', '방제목');
+            console.log(11);
+            socket.emit('createdRoom', inputString);
+        });
+
+        socket.on('createdRoom', (name) => {
+            location.href = '/room?id=' + name
+        })
+    </script>
+
+</body>
+
+</html>

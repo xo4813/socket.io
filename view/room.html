@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Chat</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="//code.jquery.com/jquery-1.11.1.js"></script>
+
+    <!-- 합쳐지고 최소화된 최신 CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
+
+    <!-- 부가적인 테마 -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap-theme.min.css">
+
+    <!-- 합쳐지고 최소화된 최신 자바스크립트 -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
+    <style>
+        body {
+            background: #f2f4f7;
+        }
+
+        .chat_log {
+            height: 200px;
+            width: 100%;
+        }
+
+        .name {
+            width: 10%;
+        }
+
+        .message {
+            width: 70%;
+        }
+
+        .chat {
+            width: 10%;
+        }
+
+        .section_navbar {
+            padding: 20px;
+            width: 70%;
+            margin: auto;
+            margin-bottom: 8px;
+            border: 1px solid #dee3eb;
+            background: #fff;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="section_navbar">
+        <h3>방 이름 </h3>
+        <textarea id="chatLog" class="chat_log" readonly></textarea>
+
+        <form id="chat">
+            <input id="name" class="name" type="text" readonly>
+            <input id="message" class="message" type="text">
+            <input type="submit" class="chat" value="chat" />
+        </form>
+        <a id="back" type="button" class="glyphicon glyphicon-home btn btn-default "> 돌아가기</a>
+    </div>
+
+    <div id="box" class="box">
+
+        <script>
+            function getParameterByName(name) {
+                name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+                var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+                    results = regex.exec(location.search);
+                return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+            }
+
+            var socket = io();
+            var id = getParameterByName('id');
+
+            window.onload = function () {
+                var inputString = prompt('닉네임을 입력하세요.', '닉네임');
+                console.log(id)
+                $('#name').val(inputString);
+                socket.emit('joinRoom', id);
+            }
+
+            $('#chat').on('submit', function (e) {
+                socket.emit('roomSendMessage', id, $('#name').val(), $('#message').val());
+                $('#message').val('');
+                $('#message').focus();
+                e.preventDefault();
+            });
+
+            $('#back').click(function (e) {
+
+                socket.emit('backRoom', id);
+                location.href = '/'
+            });
+
+            $('#new_room').click(function (e) {
+                var inputString = prompt('문자열을 입력하세요', '기본 값 문자열');
+                alert(inputString);
+                console.log(11);
+                socket.emit('joinRoom', inputString);
+            });
+
+            socket.on('receive message', function (msg) {
+                $('#chatLog').append(msg + '\n');
+                $('#chatLog').scrollTop($('#chatLog')[0].scrollHeight);
+            });
+
+            socket.on('change name', function (name) {
+
+            });
+        </script>
+    </div>
+
+</body>
+
+</html>
